@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TaskFlow — a modern, smart to-do list and productivity dashboard." />
+  <title>TaskFlow — Smart To-Do List</title>
+
+  <!-- Google Fonts: Poppins + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Lucide Icons (rendered client-side) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+</head>
+<body>
+  <!-- ============ PAGE LOADER ============ -->
+  <div class="page-loader" id="pageLoader" aria-hidden="true">
+    <div class="page-loader__brand">
+      <span class="page-loader__icon"><i data-lucide="check-check"></i></span>
+      <span class="page-loader__text">TaskFlow</span>
+    </div>
+    <div class="page-loader__bar" aria-hidden="true"></div>
+  </div>
+
+  <div class="app" id="app">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <div class="sidebar__overlay" id="sidebarOverlay"></div>
+
+      <div class="sidebar__inner">
+        <!-- Logo -->
+        <div class="sidebar__logo">
+          <span class="sidebar__logo-mark"><i data-lucide="check-check"></i></span>
+          <span class="sidebar__logo-text">Task<span class="sidebar__logo-accent">Flow</span></span>
+          <button class="sidebar__close" id="sidebarClose" aria-label="Close navigation">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar__nav" aria-label="Views">
+          <p class="sidebar__nav-label">Menu</p>
+          <button class="nav-item active" data-view="dashboard">
+            <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
+          </button>
+          <button class="nav-item" data-view="all">
+            <i data-lucide="list-checks"></i><span>My Tasks</span>
+            <span class="nav-item__count" data-count="all">0</span>
+          </button>
+          <button class="nav-item" data-view="today">
+            <i data-lucide="calendar-check"></i><span>Today</span>
+            <span class="nav-item__count" data-count="today">0</span>
+          </button>
+          <button class="nav-item" data-view="upcoming">
+            <i data-lucide="calendar-clock"></i><span>Upcoming</span>
+            <span class="nav-item__count" data-count="upcoming">0</span>
+          </button>
+          <button class="nav-item" data-view="completed">
+            <i data-lucide="check-circle-2"></i><span>Completed</span>
+            <span class="nav-item__count" data-count="completed">0</span>
+          </button>
+          <button class="nav-item" data-view="important">
+            <i data-lucide="star"></i><span>Important</span>
+            <span class="nav-item__count" data-count="important">0</span>
+          </button>
+
+          <p class="sidebar__nav-label">Categories</p>
+          <button class="nav-item" data-view="category" data-category="personal">
+            <span class="nav-item__dot" data-dot="personal"></span><span>Personal</span>
+            <span class="nav-item__count" data-count="personal">0</span>
+          </button>
+          <button class="nav-item" data-view="category" data-category="work">
+            <span class="nav-item__dot" data-dot="work"></span><span>Work</span>
+            <span class="nav-item__count" data-count="work">0</span>
+          </button>
+          <button class="nav-item" data-view="category" data-category="study">
+            <span class="nav-item__dot" data-dot="study"></span><span>Study</span>
+            <span class="nav-item__count" data-count="study">0</span>
+          </button>
+          <button class="nav-item" data-view="category" data-category="shopping">
+            <span class="nav-item__dot" data-dot="shopping"></span><span>Shopping</span>
+            <span class="nav-item__count" data-count="shopping">0</span>
+          </button>
+          <button class="nav-item" data-view="category" data-category="other">
+            <span class="nav-item__dot" data-dot="other"></span><span>Other</span>
+            <span class="nav-item__count" data-count="other">0</span>
+          </button>
+
+          <p class="sidebar__nav-label">System</p>
+          <button class="nav-item" data-view="settings">
+            <i data-lucide="settings"></i><span>Settings</span>
+          </button>
+        </nav>
+
+        <!-- Sidebar footer / mini progress -->
+        <div class="sidebar__footer">
+          <div class="sidebar__progress-card">
+            <div class="sidebar__progress-head">
+              <i data-lucide="trending-up"></i>
+              <span>Daily goal</span>
+            </div>
+            <div class="sidebar__progress-ring" id="sidebarProgressRing">
+              <span class="sidebar__progress-percent" id="sidebarProgressText">0%</span>
+            </div>
+            <p class="sidebar__progress-caption" id="sidebarProgressCaption">No tasks today</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="main" id="main">
+      <!-- Top bar -->
+      <header class="topbar">
+        <button class="topbar__menu" id="mobileMenuBtn" aria-label="Open navigation">
+          <i data-lucide="menu"></i>
+        </button>
+
+        <div class="topbar__title">
+          <h1 id="viewTitle">Dashboard</h1>
+          <p class="topbar__subtitle" id="viewSubtitle">Welcome back, let's get things done.</p>
+        </div>
+
+        <div class="topbar__actions">
+          <!-- Search -->
+          <div class="search" role="search">
+            <i data-lucide="search" class="search__icon"></i>
+            <input
+              type="search"
+              id="searchInput"
+              class="search__input"
+              placeholder="Search tasks..."
+              aria-label="Search tasks"
+              autocomplete="off"
+            />
+            <button class="search__clear" id="searchClear" aria-label="Clear search" hidden>
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <!-- Theme toggle -->
+          <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
+            <i data-lucide="moon" class="icon-btn__moon"></i>
+            <i data-lucide="sun" class="icon-btn__sun"></i>
+          </button>
+
+          <!-- Add task -->
+          <button class="btn btn--primary" id="addTaskBtn">
+            <i data-lucide="plus"></i>
+            <span>Add New Task</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Greeting + date row -->
+      <section class="hero" aria-label="Greeting">
+        <div class="hero__greeting">
+          <h2 id="greeting">Hello there!</h2>
+          <p class="hero__date" id="currentDate"></p>
+        </div>
+        <div class="hero__date-badge" id="dateBadge"></div>
+      </section>
+
+      <!-- Statistics cards -->
+      <section class="stats" aria-label="Task statistics">
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--violet"><i data-lucide="clipboard-list"></i></div>
+          <div class="stat-card__body">
+            <p class="stat-card__label">Total Tasks</p>
+            <p class="stat-card__value" id="statTotal">0</p>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--green"><i data-lucide="check-circle-2"></i></div>
+          <div class="stat-card__body">
+            <p class="stat-card__label">Completed</p>
+            <p class="stat-card__value" id="statCompleted">0</p>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--amber"><i data-lucide="clock"></i></div>
+          <div class="stat-card__body">
+            <p class="stat-card__label">Pending</p>
+            <p class="stat-card__value" id="statPending">0</p>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card__icon stat-card__icon--red"><i data-lucide="alert-triangle"></i></div>
+          <div class="stat-card__body">
+            <p class="stat-card__label">Overdue</p>
+            <p class="stat-card__value" id="statOverdue">0</p>
+          </div>
+        </article>
+      </section>
+
+      <!-- Progress overview -->
+      <section class="progress-overview" aria-label="Progress overview">
+        <div class="progress-overview__head">
+          <div>
+            <h3 class="progress-overview__title">Your Progress</h3>
+            <p class="progress-overview__caption" id="progressCaption">Keep going, you're doing great!</p>
+          </div>
+          <div class="progress-overview__percent" id="progressPercent">0%</div>
+        </div>
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBarAria">
+          <div class="progress-bar__fill" id="progressBar" style="width:0%"></div>
+        </div>
+        <div class="progress-overview__legend">
+          <span class="legend-item"><i class="legend-dot legend-dot--green"></i><span id="legendCompleted">0 done</span></span>
+          <span class="legend-item"><i class="legend-dot legend-dot--amber"></i><span id="legendPending">0 pending</span></span>
+        </div>
+      </section>
+
+      <!-- Toolbar: filters + sorting -->
+      <section class="toolbar" aria-label="Filter and sort tasks">
+        <div class="filters" id="filterBar" role="group" aria-label="Filter tasks">
+          <button class="filter-btn active" data-filter="all"><i data-lucide="layers"></i><span>All</span></button>
+          <button class="filter-btn" data-filter="today"><i data-lucide="calendar-check"></i><span>Today</span></button>
+          <button class="filter-btn" data-filter="upcoming"><i data-lucide="calendar-clock"></i><span>Upcoming</span></button>
+          <button class="filter-btn" data-filter="overdue"><i data-lucide="alert-triangle"></i><span>Overdue</span></button>
+          <button class="filter-btn" data-filter="completed"><i data-lucide="check-circle-2"></i><span>Completed</span></button>
+          <button class="filter-btn" data-filter="important"><i data-lucide="star"></i><span>Important</span></button>
+        </div>
+
+        <div class="toolbar__sort">
+          <label for="sortSelect" class="toolbar__sort-label">
+            <i data-lucide="arrow-down-wide-narrow"></i><span class="sr-only">Sort by</span>
+          </label>
+          <select id="sortSelect" class="select" aria-label="Sort tasks">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="priority">Priority</option>
+            <option value="dueDate">Due Date</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Task list -->
+      <section class="tasks" aria-label="Task list">
+        <div class="tasks__head">
+          <h3 class="tasks__title" id="tasksListTitle">All Tasks</h3>
+          <span class="tasks__count" id="tasksCount">0 tasks</span>
+        </div>
+
+        <ul class="task-list" id="taskList"></ul>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState" hidden>
+          <div class="empty-state__art"><i data-lucide="inbox"></i></div>
+          <h4 class="empty-state__title">No tasks here</h4>
+          <p class="empty-state__text">You have nothing to do in this view. Add a new task to get started.</p>
+          <button class="btn btn--primary btn--sm" id="emptyAddBtn">
+            <i data-lucide="plus"></i><span>Add Task</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ RIGHT PANEL ============ -->
+    <aside class="right-panel" id="rightPanel" aria-label="Calendar and summary">
+      <!-- Calendar -->
+      <section class="panel panel--calendar">
+        <div class="panel__head">
+          <h3 class="panel__title">Calendar</h3>
+          <div class="calendar__nav">
+            <button class="cal-btn" id="prevMonth" aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
+            <span class="calendar__month" id="calendarMonth">Month</span>
+            <button class="cal-btn" id="nextMonth" aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="calendar" id="calendar">
+          <div class="calendar__weekdays">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+          <div class="calendar__grid" id="calendarGrid"></div>
+        </div>
+      </section>
+
+      <!-- Upcoming deadlines -->
+      <section class="panel">
+        <div class="panel__head">
+          <h3 class="panel__title"><i data-lucide="alarm-clock"></i>Upcoming Deadlines</h3>
+        </div>
+        <ul class="deadline-list" id="upcomingDeadlines">
+          <li class="deadline-list__empty">No upcoming deadlines.</li>
+        </ul>
+      </section>
+
+      <!-- Productivity summary -->
+      <section class="panel">
+        <div class="panel__head">
+          <h3 class="panel__title"><i data-lucide="activity"></i>Today's Productivity</h3>
+        </div>
+        <div class="productivity" id="productivitySummary">
+          <div class="productivity__item">
+            <span class="productivity__num" id="prodCompletedToday">0</span>
+            <span class="productivity__label">Completed today</span>
+          </div>
+          <div class="productivity__item">
+            <span class="productivity__num" id="prodPendingToday">0</span>
+            <span class="productivity__label">Pending today</span>
+          </div>
+          <div class="productivity__bars" id="productivityBars" aria-hidden="true"></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- ============ TASK MODAL ============ -->
+  <div class="modal" id="taskModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__backdrop" id="modalBackdrop"></div>
+    <div class="modal__card">
+      <div class="modal__head">
+        <h3 class="modal__title" id="modalTitle">Add New Task</h3>
+        <button class="modal__close" id="modalClose" aria-label="Close dialog"><i data-lucide="x"></i></button>
+      </div>
+
+      <form class="modal__form" id="taskForm" novalidate>
+        <!-- Title -->
+        <div class="field">
+          <label for="taskTitle">Task Title <span class="req">*</span></label>
+          <input type="text" id="taskTitle" maxlength="120" placeholder="e.g. Finish quarterly report" autocomplete="off" />
+          <p class="field__error" id="taskTitleError" hidden>Please enter a task title.</p>
+        </div>
+
+        <!-- Description -->
+        <div class="field">
+          <label for="taskDescription">Description</label>
+          <textarea id="taskDescription" rows="3" maxlength="500" placeholder="Add some details (optional)..."></textarea>
+        </div>
+
+        <!-- Date + Time -->
+        <div class="field-row">
+          <div class="field">
+            <label for="taskDueDate">Due Date</label>
+            <input type="date" id="taskDueDate" />
+          </div>
+          <div class="field">
+            <label for="taskDueTime">Due Time</label>
+            <input type="time" id="taskDueTime" />
+          </div>
+        </div>
+
+        <!-- Priority + Category -->
+        <div class="field-row">
+          <div class="field">
+            <label for="taskPriority">Priority</label>
+            <select id="taskPriority" class="select">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="taskCategory">Category</label>
+            <select id="taskCategory" class="select">
+              <option value="personal">Personal</option>
+              <option value="work">Work</option>
+              <option value="study">Study</option>
+              <option value="shopping">Shopping</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="field">
+          <label for="taskTags">Tags <span class="hint">(comma separated)</span></label>
+          <input type="text" id="taskTags" placeholder="e.g. urgent, client, design" autocomplete="off" />
+        </div>
+
+        <!-- Important -->
+        <label class="check-row">
+          <input type="checkbox" id="taskImportant" />
+          <span class="check-row__box"><i data-lucide="star"></i></span>
+          <span class="check-row__label">Mark as important</span>
+        </label>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--ghost" id="cancelTaskBtn">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="saveTaskBtn">
+            <i data-lucide="check"></i><span>Save Task</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ DELETE CONFIRMATION MODAL ============ -->
+  <div class="modal modal--sm" id="deleteModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal__backdrop" id="deleteBackdrop"></div>
+    <div class="modal__card">
+      <div class="modal__head">
+        <h3 class="modal__title" id="deleteModalTitle">Delete task?</h3>
+        <button class="modal__close" id="deleteClose" aria-label="Close dialog"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal__body">
+        <div class="delete-art"><i data-lucide="trash-2"></i></div>
+        <p class="delete-text" id="deleteText">This task will be permanently removed. This action cannot be undone.</p>
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" id="cancelDelete">Cancel</button>
+        <button type="button" class="btn btn--danger" id="confirmDelete">
+          <i data-lucide="trash-2"></i><span>Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS DRAWER ============ -->
+  <div class="modal modal--sm" id="settingsModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal__backdrop" id="settingsBackdrop"></div>
+    <div class="modal__card">
+      <div class="modal__head">
+        <h3 class="modal__title" id="settingsTitle">Settings</h3>
+        <button class="modal__close" id="settingsClose" aria-label="Close dialog"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal__body settings">
+        <div class="setting-row">
+          <div class="setting-row__text">
+            <p class="setting-row__title">Dark Mode</p>
+            <p class="setting-row__desc">Switch between light and dark theme.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="settingsThemeToggle" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__text">
+            <p class="setting-row__title">Clear All Data</p>
+            <p class="setting-row__desc">Remove every task and reset the app.</p>
+          </div>
+          <button class="btn btn--danger btn--sm" id="clearAllBtn">
+            <i data-lucide="trash-2"></i><span>Clear</span>
+          </button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__text">
+            <p class="setting-row__title">Export Tasks</p>
+            <p class="setting-row__desc">Download your tasks as a JSON file.</p>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="exportBtn">
+            <i data-lucide="download"></i><span>Export</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TOAST CONTAINER ============ -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- App script -->
+  <script src="script.js" defer></script>
+</body>
+</html>
